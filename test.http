@@ -1,0 +1,23 @@
+POST http://127.0.0.1:8000/api/login/
+Content-Type: application/json
+
+{
+  "email": "ali@example.com",
+  "password": "12345678"
+}
+
+### Get authenticated user
+GET http://127.0.0.1:8000/api/user/
+Authorization: Token 475c00da62e7de57593bff6633cc6e4a65b5e620
+
+### Deposit Request (POST)
+POST http://127.0.0.1:8000/api/deposit/
+Content-Type: application/json
+Authorization: Token 475c00da62e7de57593bff6633cc6e4a65b5e620
+
+{
+  "amount": 1000.0,
+  "currency": "USDT",
+  "trx_id": "trx123456"
+}
+
