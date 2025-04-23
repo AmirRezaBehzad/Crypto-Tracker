@@ -134,6 +134,7 @@ AUTH_USER_MODEL = 'users.CustomUser'
 
 AUTHENTICATION_BACKENDS = [
     'users.backends.EmailBackend',
+    'django.contrib.auth.backends.ModelBackend',  # ← add this back for admin, permissions, etc.
 ]
 
 REST_FRAMEWORK = {

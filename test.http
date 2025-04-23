@@ -1,23 +1,36 @@
-POST http://127.0.0.1:8000/api/login/
+### 1) Register a new user
+POST http://127.0.0.1:8000/api/users/register/
 Content-Type: application/json
 
 {
-  "email": "ali@example.com",
+  "email": "amir@example.com",
   "password": "12345678"
 }
 
-### Get authenticated user
-GET http://127.0.0.1:8000/api/user/
-Authorization: Token 475c00da62e7de57593bff6633cc6e4a65b5e620
-
-### Deposit Request (POST)
-POST http://127.0.0.1:8000/api/deposit/
+### 2) Login (get your token)
+POST http://127.0.0.1:8000/api/users/login/
 Content-Type: application/json
-Authorization: Token 475c00da62e7de57593bff6633cc6e4a65b5e620
 
 {
-  "amount": 1000.0,
-  "currency": "USDT",
-  "trx_id": "trx123456"
+  "email": "amir@example.com",
+  "password": "12345678"
 }
 
+### 3) Get authenticated user info
+GET http://127.0.0.1:8000/api/users/user/
+Authorization: Token 9806619190dc912ca96f25c560d95516277cd7a5
+
+### 4) Create a deposit request
+POST http://127.0.0.1:8000/api/deposits/
+Content-Type: application/json
+Authorization: Token 9806619190dc912ca96f25c560d95516277cd7a5
+
+{
+  "amount": 1000.00,
+  "currency": "USDT",
+  "trx_id":   "trx12345678"
+}
+
+### 5) List your deposit requests
+GET http://127.0.0.1:8000/api/deposits/
+Authorization: Token 9806619190dc912ca96f25c560d95516277cd7a5
