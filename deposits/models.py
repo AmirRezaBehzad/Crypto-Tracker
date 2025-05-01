@@ -10,7 +10,7 @@ class Deposit(models.Model):
     user     = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     amount   = models.DecimalField(max_digits=12, decimal_places=2)
     currency = models.CharField(max_length=10, default='USDT')
-    trx_id   = models.CharField(max_length=100, unique=True)
+    trx_id   = models.CharField(max_length=200, unique=True)
     status   = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
     created  = models.DateTimeField(auto_now_add=True)
 
