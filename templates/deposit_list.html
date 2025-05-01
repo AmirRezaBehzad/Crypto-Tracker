@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}My Deposits – Crypto-Tracker{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10 col-md-12">
+    <div class="card mt-4">
+      <div class="card-body">
+        <h3 class="card-title mb-4 text-center">My Deposits</h3>
+        <div id="alert"></div>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Currency</th>
+                <th scope="col">Transaction ID</th>
+                <th scope="col">Date</th>
+                <th scope="col">Status</th> <!-- Added Status column -->
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function loadDeposits() {
+  const token = localStorage.getItem('token');
+  const res = await fetch('/api/deposits/', {
+    headers: { 'Authorization': 'Token ' + token }
+  });
+  
+  if (!res.ok) {
+    document.getElementById('rows').innerHTML =
+      `<tr><td colspan="6" class="text-center text-danger">
+         Please log in to view deposits.
+       </td></tr>`;
+    return;
+  }
+
+  const list = await res.json();
+  console.log('API response:', list);  // Log the API response
+
+  const rowsHtml = list.map(d => {
+    console.log('Processing deposit:', d);  // Log each deposit
+
+    const amount = parseFloat(d.amount).toFixed(2);
+
+    // Prepare the date
+    let dateDisplay = '-';
+    if (d.created) {
+      console.log('Raw created date:', d.created);  // Log the raw date string
+
+      // Handle ISO 8601 date format with 'Z' (UTC time)
+      const iso = d.created.replace('Z', '');  // Remove 'Z' for better parsing
+      const dt = new Date(iso);
+
+      console.log('Parsed date:', dt);  // Log the parsed date object
+
+      if (!isNaN(dt)) {
+        dateDisplay = dt.toLocaleString();  // Convert to local date string format
+      }
+    }
+
+    // Prepare the status
+    let statusDisplay = d.status.charAt(0).toUpperCase() + d.status.slice(1); // Capitalize first letter
+
+    return `
+      <tr>
+        <th scope="row">${d.id}</th>
+        <td>${amount}</td>
+        <td>${d.currency}</td>
+        <td>${d.trx_id}</td>
+        <td>${dateDisplay}</td>
+        <td>${statusDisplay}</td> <!-- Displaying status -->
+      </tr>`;
+  }).join('');
+
+  document.getElementById('rows').innerHTML = rowsHtml;
+}
+
+window.addEventListener('DOMContentLoaded', loadDeposits);
+</script>
+{% endblock %}

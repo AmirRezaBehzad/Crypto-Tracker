@@ -1,39 +1,14 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .serializers import DepositRequestSerializer
-from rest_framework.permissions import IsAuthenticated
-from .models import Deposit, DepositRequest
+from rest_framework import viewsets, permissions
+from .models import Deposit
 from .serializers import DepositSerializer
 
-class DepositRequestView(APIView):
-    permission_classes = [IsAuthenticated]
+class DepositViewSet(viewsets.ModelViewSet):
+    serializer_class = DepositSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request):
-        qs = DepositRequest.objects.filter(user=request.user)
-        serializer = DepositRequestSerializer(qs, many=True)
-        return Response(serializer.data)
+    def get_queryset(self):
+        return Deposit.objects.filter(user=self.request.user)
 
-    def post(self, request):
-        serializer = DepositRequestSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-
-class DepositView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        qs = Deposit.objects.filter(user=request.user)
-        serializer = DepositSerializer(qs, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        serializer = DepositSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    def perform_create(self, serializer):
+        # Ensure the deposit is saved with the current user
+        serializer.save(user=self.request.user)

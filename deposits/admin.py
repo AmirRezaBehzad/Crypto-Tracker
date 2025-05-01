@@ -1,8 +1,10 @@
 from django.contrib import admin
-from .models import DepositRequest
+from .models import Deposit
 
-@admin.register(DepositRequest)
+@admin.register(Deposit)
 class DepositAdmin(admin.ModelAdmin):
-    list_display = ['user', 'amount', 'currency', 'status', 'trx_id', 'created_at']
-    list_filter = ['status', 'currency']
-    search_fields = ['user__email', 'trx_id']
+    list_display  = ['id','user','amount','currency','trx_id','status','created']
+    list_filter   = ['status','currency']
+    search_fields = ['trx_id','user__email']
+    ordering      = ['-created']
+    list_per_page = 50

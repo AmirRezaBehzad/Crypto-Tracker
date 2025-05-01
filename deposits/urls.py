@@ -1,8 +1,6 @@
 from django.urls import path
-from .views import DepositRequestView
-from .views import DepositView
+from .views import DepositViewSet
 
 urlpatterns = [
-    # POST & GET /api/deposits/
-    path('', DepositRequestView.as_view(), name='deposit-requests'),
+    path('', DepositViewSet.as_view({'get': 'list', 'post': 'create'}), name='deposits'),
 ]
