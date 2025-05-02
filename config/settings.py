@@ -11,19 +11,47 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import environ
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# 1. Initialise environ
+env = environ.Env(
+    DEBUG=(bool, False)
+)
+
+# 2. Read .env file
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+
+# 3. Use env vars
+DEBUG = env('DEBUG')
+SECRET_KEY = env('SECRET_KEY')
+
+DATABASES = {
+    'default': {
+        'ENGINE':   'django.db.backends.mysql',
+        'NAME':     env('DB_NAME'),
+        'USER':     env('DB_USER'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST':     env('DB_HOST'),
+        'PORT':     env('DB_PORT'),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
+    }
+}
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-z#m52&lr*l(mk3hxh9&u3=7=2h@o#$%8kxa*sf0or913v%zc@6'
+# SECRET_KEY = 'django-insecure-z#m52&lr*l(mk3hxh9&u3=7=2h@o#$%8kxa*sf0or913v%zc@6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
 
 ALLOWED_HOSTS = []
 
@@ -96,23 +124,23 @@ WSGI_APPLICATION = 'config.wsgi.application'
 #     }
 # }
 
-DATABASES = {
-    # → your MySQL (default) config stays here
-    "default": {
-        "ENGINE":   "django.db.backends.mysql",
-        "NAME":     "crypto_tracker_db",
-        "USER":     "crypto_user",
-        "PASSWORD": "123456789",
-        "HOST":     "127.0.0.1",
-        "PORT":     "3306",
-        "OPTIONS": {"init_command": "SET sql_mode='STRICT_TRANS_TABLES'"},
-    },
-    # ← add this alias for your old SQLite
-    "sqlite_db": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME":   BASE_DIR / "db.sqlite3",
-    },
-}
+# DATABASES = {
+#     # → your MySQL (default) config stays here
+#     "default": {
+#         "ENGINE":   "django.db.backends.mysql",
+#         "NAME":     "crypto_tracker_db",
+#         "USER":     "crypto_user",
+#         "PASSWORD": "123456789",
+#         "HOST":     "127.0.0.1",
+#         "PORT":     "3306",
+#         "OPTIONS": {"init_command": "SET sql_mode='STRICT_TRANS_TABLES'"},
+#     },
+#     # ← add this alias for your old SQLite
+#     "sqlite_db": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME":   BASE_DIR / "db.sqlite3",
+#     },
+# }
 
 # DATABASES = {
 #     'default': {
