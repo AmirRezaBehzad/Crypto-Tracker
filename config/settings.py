@@ -82,12 +82,45 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE':   'django.db.backends.mysql',
+#         'NAME':     'crypto_tracker_db',
+#         'USER':     'crypto_user',
+#         'PASSWORD': '123456789',    # ← your phpMyAdmin password
+#         'HOST':     '127.0.0.1',
+#         'PORT':     '3306',
+#         'OPTIONS': {
+#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+#         },
+#     }
+# }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    # → your MySQL (default) config stays here
+    "default": {
+        "ENGINE":   "django.db.backends.mysql",
+        "NAME":     "crypto_tracker_db",
+        "USER":     "crypto_user",
+        "PASSWORD": "123456789",
+        "HOST":     "127.0.0.1",
+        "PORT":     "3306",
+        "OPTIONS": {"init_command": "SET sql_mode='STRICT_TRANS_TABLES'"},
+    },
+    # ← add this alias for your old SQLite
+    "sqlite_db": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME":   BASE_DIR / "db.sqlite3",
+    },
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 
 
 # Password validation
