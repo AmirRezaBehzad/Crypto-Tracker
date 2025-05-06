@@ -1,11 +1,14 @@
 from django.urls import path
-from . import views
-from .views import new_deposit_page
+from .views import (
+    RegisterPageView, LoginPageView,
+    DepositFormPageView, DepositListPageView,
+    NewDepositPageView,
+)
 
 urlpatterns = [
-    path('register/',       views.register_page,     name='register'),
-    path('login/',          views.login_page,        name='login'),
-    path('deposits/new/',   views.deposit_form_page, name='deposit_form'),
-    path('deposits/',       views.deposit_list_page, name='deposit_list'),
-    path('deposits/new/', new_deposit_page, name='new_deposit_page'),
+    path('register/',      RegisterPageView.as_view(),      name='register'),
+    path('login/',         LoginPageView.as_view(),         name='login'),
+    path('deposits/',      DepositListPageView.as_view(),   name='deposit-list'),
+    path('deposits/new/',  NewDepositPageView.as_view(),    name='new-deposit'),
+    path('deposits/form/', DepositFormPageView.as_view(),   name='deposit-form'),
 ]

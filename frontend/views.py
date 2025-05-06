@@ -1,20 +1,23 @@
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
+from django.views.generic import TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-# Create your views here.
+# public pages
+class RegisterPageView(TemplateView):
+    template_name = 'register.html'
 
-def register_page(request):
-    return render(request, 'register.html')
+class LoginPageView(TemplateView):
+    template_name = 'login.html'
 
-def login_page(request):
-    return render(request, 'login.html')
+class DepositFormPageView(TemplateView):
+    template_name = 'deposit_form.html'
 
-def deposit_form_page(request):
-    return render(request, 'deposit_form.html')
+class DepositListPageView(TemplateView):
+    template_name = 'deposit_list.html'
 
-def deposit_list_page(request):
-    return render(request, 'deposit_list.html')
-
-@login_required
-def new_deposit_page(request):
-    return render(request, "new_deposit.html")
+# protected page (requires login)
+class NewDepositPageView(LoginRequiredMixin, TemplateView):
+    template_name = 'new_deposit.html'
+    # optional: where to redirect if not logged in
+    login_url = '/login/'  
+    # optional: query‑string param name for “next”
+    redirect_field_name = 'next'

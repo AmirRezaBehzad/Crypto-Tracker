@@ -16,11 +16,16 @@
                 <th scope="col">Currency</th>
                 <th scope="col">Transaction ID</th>
                 <th scope="col">Date</th>
-                <th scope="col">Status</th> <!-- Added Status column -->
+                <th scope="col">Status</th>
               </tr>
             </thead>
             <tbody id="rows"></tbody>
           </table>
+        </div>
+        <!-- Pagination controls -->
+        <div class="d-flex justify-content-between my-3">
+          <button id="prev-btn" class="btn btn-secondary" disabled>Previous</button>
+          <button id="next-btn" class="btn btn-secondary" disabled>Next</button>
         </div>
       </div>
     </div>
@@ -30,12 +35,14 @@
 
 {% block extra_js %}
 <script>
-async function loadDeposits() {
+let nextUrl = '/api/deposits/?page=1';
+let prevUrl = null;
+
+async function loadDeposits(url) {
   const token = localStorage.getItem('token');
-  const res = await fetch('/api/deposits/', {
+  const res = await fetch(url, {
     headers: { 'Authorization': 'Token ' + token }
   });
-  
   if (!res.ok) {
     document.getElementById('rows').innerHTML =
       `<tr><td colspan="6" class="text-center text-danger">
@@ -44,33 +51,25 @@ async function loadDeposits() {
     return;
   }
 
-  const list = await res.json();
-  console.log('API response:', list);  // Log the API response
+  const data = await res.json();
+  console.log('API response:', data);
 
+  // update paging URLs
+  nextUrl = data.next;
+  prevUrl = data.previous;
+  document.getElementById('next-btn').disabled = !nextUrl;
+  document.getElementById('prev-btn').disabled = !prevUrl;
+
+  // render the current page of deposits
+  const list = data.results || [];
   const rowsHtml = list.map(d => {
-    console.log('Processing deposit:', d);  // Log each deposit
-
     const amount = parseFloat(d.amount).toFixed(2);
-
-    // Prepare the date
     let dateDisplay = '-';
     if (d.created) {
-      console.log('Raw created date:', d.created);  // Log the raw date string
-
-      // Handle ISO 8601 date format with 'Z' (UTC time)
-      const iso = d.created.replace('Z', '');  // Remove 'Z' for better parsing
-      const dt = new Date(iso);
-
-      console.log('Parsed date:', dt);  // Log the parsed date object
-
-      if (!isNaN(dt)) {
-        dateDisplay = dt.toLocaleString();  // Convert to local date string format
-      }
+      const dt = new Date(d.created.replace('Z',''));
+      if (!isNaN(dt)) dateDisplay = dt.toLocaleString();
     }
-
-    // Prepare the status
-    let statusDisplay = d.status.charAt(0).toUpperCase() + d.status.slice(1); // Capitalize first letter
-
+    const statusDisplay = d.status.charAt(0).toUpperCase() + d.status.slice(1);
     return `
       <tr>
         <th scope="row">${d.id}</th>
@@ -78,13 +77,22 @@ async function loadDeposits() {
         <td>${d.currency}</td>
         <td>${d.trx_id}</td>
         <td>${dateDisplay}</td>
-        <td>${statusDisplay}</td> <!-- Displaying status -->
+        <td>${statusDisplay}</td>
       </tr>`;
   }).join('');
-
-  document.getElementById('rows').innerHTML = rowsHtml;
+  document.getElementById('rows').innerHTML = rowsHtml || 
+    `<tr><td colspan="6" class="text-center">No deposits found.</td></tr>`;
 }
 
-window.addEventListener('DOMContentLoaded', loadDeposits);
+// wire up the buttons
+document.getElementById('prev-btn').addEventListener('click', () => {
+  if (prevUrl) loadDeposits(prevUrl);
+});
+document.getElementById('next-btn').addEventListener('click', () => {
+  if (nextUrl) loadDeposits(nextUrl);
+});
+
+// initial load
+window.addEventListener('DOMContentLoaded', () => loadDeposits(nextUrl));
 </script>
 {% endblock %}

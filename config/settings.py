@@ -212,6 +212,10 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    # Use page‑number style by default
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    # How many items per “page” if client doesn’t specify
+    'PAGE_SIZE': 10,
 }
 
 CELERY_ACCEPT_CONTENT = ['json']
