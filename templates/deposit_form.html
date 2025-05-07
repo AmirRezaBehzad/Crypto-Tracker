@@ -1,25 +1,49 @@
 {% extends "base.html" %}
-{% block title %}New Deposit – Crypto-Tracker{% endblock %}
+{% block title %}New Deposit – Crypto‑Tracker{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-lg-6 col-md-8">
     <div class="card mt-4">
       <div class="card-body">
-        <h3 class="card-title mb-4 text-center">New Deposit</h3>
+        <h3 class="card-title mb-4 text-center">Create New Deposit</h3>
         <div id="alert"></div>
-        <form id="depositForm" novalidate>
+        <form id="depositForm" novalidate autocomplete="off">
           <div class="mb-3">
             <label for="amount" class="form-label">Amount</label>
-            <input type="number" step="0.01" id="amount" class="form-control form-control-lg" required>
+            <input
+              type="number" step="0.01"
+              id="amount" name="amount"
+              class="form-control form-control-lg"
+              required autocomplete="off"
+            >
           </div>
+
           <div class="mb-3">
             <label for="currency" class="form-label">Currency</label>
-            <input type="text" id="currency" class="form-control form-control-lg" required>
+            <select
+              id="currency" name="currency"
+              class="form-select form-select-lg"
+              required autocomplete="off"
+              size="5">
+              <option value="" disabled selected>Select a currency</option>
+              <option value="BTC">BTC</option>
+              <option value="ETH">ETH</option>
+              <option value="USDT">USDT</option>
+              <option value="XRP">XRP</option>
+              <option value="TRX">TRX</option>
+            </select>
           </div>
+
           <div class="mb-3">
             <label for="trx_id" class="form-label">Transaction ID</label>
-            <input type="text" id="trx_id" class="form-control form-control-lg" required>
+            <input
+              type="text"
+              id="trx_id" name="trx_id"
+              class="form-control form-control-lg"
+              required autocomplete="off"
+            >
           </div>
+
           <button class="btn btn-primary w-100 btn-lg">Submit Deposit</button>
         </form>
       </div>
@@ -34,25 +58,37 @@
   document.getElementById('depositForm').addEventListener('submit', async e => {
     e.preventDefault();
     alertEl.innerHTML = '';
+    alertEl.className = '';
+
     const token = localStorage.getItem('token');
+    const payload = {
+      amount:   parseFloat(document.getElementById('amount').value),
+      currency: document.getElementById('currency').value,
+      trx_id:   document.getElementById('trx_id').value
+    };
+
     const res = await fetch('/api/deposits/', {
       method: 'POST',
       headers: {
-        'Content-Type':'application/json',
-        'Authorization':'Token ' + token
+        'Content-Type': 'application/json',
+        'Authorization': 'Token ' + token
       },
-      body: JSON.stringify({
-        amount: parseFloat(document.getElementById('amount').value),
-        currency: document.getElementById('currency').value,
-        trx_id: document.getElementById('trx_id').value
-      })
+      body: JSON.stringify(payload)
     });
+
     const data = await res.json();
+
     if (res.ok) {
-      alertEl.innerHTML = `<div class="alert alert-success">Deposit created successfully!</div>`;
-      document.getElementById('depositForm').reset();
+      alertEl.classList.add('alert', 'alert-success');
+      alertEl.textContent = 'Deposit created successfully!';
+      e.target.reset();
     } else {
-      alertEl.innerHTML = `<div class="alert alert-danger">${JSON.stringify(data)}</div>`;
+      alertEl.classList.add('alert', 'alert-danger');
+      const lines = [];
+      for (const [field, msgs] of Object.entries(data)) {
+        msgs.forEach(m => lines.push(`${field}: ${m}`));
+      }
+      alertEl.innerHTML = lines.map(l => `<div>${l}</div>`).join('');
     }
   });
 </script>

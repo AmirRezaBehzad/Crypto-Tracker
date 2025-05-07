@@ -75,7 +75,36 @@ INSTALLED_APPS = [
 
     'rest_framework.authtoken',
     'frontend',
+
+    
 ]
+
+LOGGING = {
+  'version': 1,
+  'disable_existing_loggers': False,
+  'handlers': {
+    'console': {
+      'class': 'logging.StreamHandler',
+    },
+  },
+  'root': {
+    'handlers': ['console'],
+    'level': 'INFO',           # capture INFO+ messages
+  },
+  # you can also configure specific loggers:
+  'loggers': {
+    'django.db.backends': {
+      'handlers': ['console'],
+      'level': 'WARNING',      # only warn on slow/failed SQL
+      'propagate': False,
+    },
+    'deposits': {
+      'handlers': ['console'],
+      'level': 'DEBUG',        # debug logs from your app
+      'propagate': False,
+    },
+  },
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

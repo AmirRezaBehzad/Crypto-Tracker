@@ -38,3 +38,36 @@ Authorization: Token d136eb94a0254478466f7c1e18fa17fc497cf676
 ### Page 2 of deposits (with token)
 GET http://127.0.0.1:8000/api/deposits/?page=2
 Authorization: Token d136eb94a0254478466f7c1e18fa17fc497cf676
+
+### Negative amount → 400
+POST http://127.0.0.1:8000/api/deposits/
+Authorization: Token d136eb94a0254478466f7c1e18fa17fc497cf676
+Content-Type: application/json
+
+{
+  "amount": -5,
+  "currency": "BTC",
+  "trx_id": "unique123"
+}
+
+### Unknown Currency
+POST http://127.0.0.1:8000/api/deposits/
+Authorization: Token d136eb94a0254478466f7c1e18fa17fc497cf676
+Content-Type: application/json
+
+{
+  "amount": 10,
+  "currency": "DOGE",
+  "trx_id": "unique1245"
+}
+
+### New Option Test
+POST http://127.0.0.1:8000/api/deposits/
+Authorization: Token d136eb94a0254478466f7c1e18fa17fc497cf676
+Content-Type: application/json
+
+{
+  "amount": 123.45,
+  "currency": "BTC",
+  "trx_id": "logtest00124"
+}
