@@ -30,6 +30,8 @@
   document.getElementById('loginForm').addEventListener('submit', async e => {
     e.preventDefault();
     alertEl.innerHTML = '';
+    alertEl.className = '';
+
     const res = await fetch('/api/users/login/', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
@@ -38,12 +40,16 @@
         password: document.getElementById('password').value
       })
     });
+
     const data = await res.json();
+
     if (res.ok && data.token) {
       localStorage.setItem('token', data.token);
       window.location.href = '/deposits/';
     } else {
-      alertEl.innerHTML = `<div class="alert alert-danger">${data.non_field_errors || data.detail || 'Login failed'}</div>`;
+      const msg = data.non_field_errors?.[0] || data.detail || "Invalid login. Please try again.";
+      alertEl.classList.add('alert', 'alert-danger');
+      alertEl.textContent = msg;
     }
   });
 </script>

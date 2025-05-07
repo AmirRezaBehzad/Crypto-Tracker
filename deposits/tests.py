@@ -84,3 +84,26 @@ class DepositViewSetTest(TestCase):
         self.assertEqual(response.data['count'], 15)
         # default PAGE_SIZE = 10, so results length should be 10
         self.assertEqual(len(response.data['results']), 10)
+
+    def test_unauthorized_access(self):
+        unauthenticated_client = APIClient()
+        response = unauthenticated_client.get('/api/deposits/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_duplicate_trx_id(self):
+        Deposit.objects.create(
+            user=self.user,
+            amount=100,
+            currency='USDT',
+            trx_id='duplicate123'
+        )
+        data = {
+            'amount': 200,
+            'currency': 'USDT',
+            'trx_id': 'duplicate123',
+            'status': 'pending'
+        }
+        response = self.client.post('/api/deposits/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('trx_id', response.data)
+

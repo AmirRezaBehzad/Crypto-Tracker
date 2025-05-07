@@ -10,21 +10,11 @@
         <form id="depositForm" novalidate autocomplete="off">
           <div class="mb-3">
             <label for="amount" class="form-label">Amount</label>
-            <input
-              type="number" step="0.01"
-              id="amount" name="amount"
-              class="form-control form-control-lg"
-              required autocomplete="off"
-            >
+            <input type="number" step="0.01" id="amount" name="amount" class="form-control form-control-lg" required>
           </div>
-
           <div class="mb-3">
             <label for="currency" class="form-label">Currency</label>
-            <select
-              id="currency" name="currency"
-              class="form-select form-select-lg"
-              required autocomplete="off"
-              size="5">
+            <select id="currency" name="currency" class="form-select form-select-lg" required size="5">
               <option value="" disabled selected>Select a currency</option>
               <option value="BTC">BTC</option>
               <option value="ETH">ETH</option>
@@ -33,17 +23,10 @@
               <option value="TRX">TRX</option>
             </select>
           </div>
-
           <div class="mb-3">
             <label for="trx_id" class="form-label">Transaction ID</label>
-            <input
-              type="text"
-              id="trx_id" name="trx_id"
-              class="form-control form-control-lg"
-              required autocomplete="off"
-            >
+            <input type="text" id="trx_id" name="trx_id" class="form-control form-control-lg" required>
           </div>
-
           <button class="btn btn-primary w-100 btn-lg">Submit Deposit</button>
         </form>
       </div>
@@ -62,9 +45,9 @@
 
     const token = localStorage.getItem('token');
     const payload = {
-      amount:   parseFloat(document.getElementById('amount').value),
+      amount: parseFloat(document.getElementById('amount').value),
       currency: document.getElementById('currency').value,
-      trx_id:   document.getElementById('trx_id').value
+      trx_id: document.getElementById('trx_id').value
     };
 
     const res = await fetch('/api/deposits/', {
@@ -85,8 +68,13 @@
     } else {
       alertEl.classList.add('alert', 'alert-danger');
       const lines = [];
-      for (const [field, msgs] of Object.entries(data)) {
-        msgs.forEach(m => lines.push(`${field}: ${m}`));
+      for (const [field, messages] of Object.entries(data)) {
+        messages.forEach(msg => {
+          let label = field === 'amount' ? 'Amount' :
+                      field === 'currency' ? 'Currency' :
+                      field === 'trx_id' ? 'Transaction ID' : field;
+          lines.push(`<strong>${label}:</strong> ${msg}`);
+        });
       }
       alertEl.innerHTML = lines.map(l => `<div>${l}</div>`).join('');
     }
