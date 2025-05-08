@@ -6,6 +6,10 @@
     <div class="card mt-4">
       <div class="card-body">
         <h3 class="card-title mb-4 text-center">Sign In</h3>
+        <!-- Display the message if it's passed from the view -->
+        {% if message %}
+          <div class="alert alert-warning">{{ message }}</div>
+        {% endif %}
         <div id="alert"></div>
         <form id="loginForm" novalidate>
           <div class="mb-3">
@@ -27,6 +31,13 @@
 {% block extra_js %}
 <script>
   const alertEl = document.getElementById('alert');
+  
+  // Check if there's a message (this would be passed from the view)
+  {% if message %}
+    alertEl.classList.add('alert', 'alert-warning');
+    alertEl.textContent = '{{ message }}';
+  {% endif %}
+
   document.getElementById('loginForm').addEventListener('submit', async e => {
     e.preventDefault();
     alertEl.innerHTML = '';

@@ -80,31 +80,41 @@ INSTALLED_APPS = [
 ]
 
 LOGGING = {
-  'version': 1,
-  'disable_existing_loggers': False,
-  'handlers': {
-    'console': {
-      'class': 'logging.StreamHandler',
+    'version': 1,
+    'disable_existing_loggers': False,
+
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
     },
-  },
-  'root': {
-    'handlers': ['console'],
-    'level': 'INFO',           # capture INFO+ messages
-  },
-  # you can also configure specific loggers:
-  'loggers': {
-    'django.db.backends': {
-      'handlers': ['console'],
-      'level': 'WARNING',      # only warn on slow/failed SQL
-      'propagate': False,
+
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'filters': ['require_debug_false'],
+        },
     },
-    'deposits': {
-      'handlers': ['console'],
-      'level': 'DEBUG',        # debug logs from your app
-      'propagate': False,
+
+    'root': {
+        'handlers': ['console'],
+        'level': 'ERROR',
     },
-  },
+
+    'loggers': {
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'deposits': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
 }
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -245,6 +255,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     # How many items per “page” if client doesn’t specify
     'PAGE_SIZE': 10,
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
 CELERY_ACCEPT_CONTENT = ['json']

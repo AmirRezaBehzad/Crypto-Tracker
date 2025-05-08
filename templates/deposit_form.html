@@ -28,6 +28,9 @@
             <input type="text" id="trx_id" name="trx_id" class="form-control form-control-lg" required>
           </div>
           <button class="btn btn-primary w-100 btn-lg">Submit Deposit</button>
+          <div id="loadingSpinner" style="display:none; text-align:center;">
+            <span>Loading...</span>  <!-- You can replace this with a spinner image if needed -->
+          </div>
         </form>
       </div>
     </div>
@@ -38,14 +41,31 @@
 {% block extra_js %}
 <script>
   const alertEl = document.getElementById('alert');
-  document.getElementById('depositForm').addEventListener('submit', async e => {
+  const spinner = document.getElementById('loadingSpinner');
+  const form = document.getElementById('depositForm');
+  
+  form.addEventListener('submit', async function(e) {
     e.preventDefault();
+
+    // Clear any previous alert messages
     alertEl.innerHTML = '';
     alertEl.className = '';
+    
+    // Show loading spinner
+    spinner.style.display = 'block';
+    
+    // Validate client-side (e.g., positive amount)
+    const amount = parseFloat(document.getElementById('amount').value);
+    if (amount <= 0) {
+      alertEl.classList.add('alert', 'alert-danger');
+      alertEl.textContent = 'Amount must be a positive number.';
+      spinner.style.display = 'none';
+      return;  // Prevent form submission
+    }
 
     const token = localStorage.getItem('token');
     const payload = {
-      amount: parseFloat(document.getElementById('amount').value),
+      amount: amount,
       currency: document.getElementById('currency').value,
       trx_id: document.getElementById('trx_id').value
     };
@@ -61,10 +81,13 @@
 
     const data = await res.json();
 
+    // Hide loading spinner after request
+    spinner.style.display = 'none';
+
     if (res.ok) {
       alertEl.classList.add('alert', 'alert-success');
       alertEl.textContent = 'Deposit created successfully!';
-      e.target.reset();
+      form.reset();
     } else {
       alertEl.classList.add('alert', 'alert-danger');
       const lines = [];
