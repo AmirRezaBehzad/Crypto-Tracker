@@ -22,4 +22,5 @@ urlpatterns = [
     path('api/users/', include('users.urls')),
     path('api/deposits/', include('deposits.urls')),
     path('',               include('frontend.urls')),
+    path('', include('core.urls')),  # Home page handled by core app
 ]

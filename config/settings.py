@@ -75,8 +75,7 @@ INSTALLED_APPS = [
 
     'rest_framework.authtoken',
     'frontend',
-
-    
+    'core'
 ]
 
 LOGGING = {
