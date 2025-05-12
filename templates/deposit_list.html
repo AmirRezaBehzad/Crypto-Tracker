@@ -8,15 +8,23 @@
         <h3 class="card-title mb-4 text-center">My Deposits</h3>
         <div id="alert"></div>
 
+        <!-- Total Portfolio Value (USD) -->
+        <div class="alert alert-info" id="totalValue" style="display:none;">
+          <strong>Total Portfolio Value: </strong>
+          <span id="totalValueAmount">Loading...</span>
+        </div>
+
         <!-- Filter Form -->
         <form id="filterForm" class="mb-4">
-          <div class="row">
+          <div class="row g-2">
             <div class="col-md-3">
               <select id="currency" name="currency" class="form-select">
                 <option value="">All Currencies</option>
                 <option value="BTC">BTC</option>
                 <option value="ETH">ETH</option>
                 <option value="USDT">USDT</option>
+                <option value="XRP">XRP</option>
+                <option value="TRX">TRX</option>
               </select>
             </div>
             <div class="col-md-3">
@@ -36,18 +44,19 @@
           <table class="table table-striped table-hover">
             <thead class="table-dark">
               <tr>
-                <th scope="col">#</th>
-                <th scope="col">Amount</th>
-                <th scope="col">Currency</th>
-                <th scope="col">Transaction ID</th>
-                <th scope="col">Date</th>
-                <th scope="col">Status</th>
+                <th>#</th>
+                <th>Amount</th>
+                <th>Currency</th>
+                <th>Transaction ID</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Value (USD)</th>
               </tr>
             </thead>
             <tbody id="rows"></tbody>
           </table>
         </div>
-        <!-- Pagination controls -->
+
         <div class="d-flex justify-content-between my-3">
           <button id="prev-btn" class="btn btn-secondary" disabled>Previous</button>
           <button id="next-btn" class="btn btn-secondary" disabled>Next</button>
@@ -60,43 +69,59 @@
 
 {% block extra_js %}
 <script>
-  let nextUrl = '/api/deposits/?page=1';
-  let prevUrl = null;
+  let livePrices = {};
+  let allDeposits = [];
+  let currentPage = 1;
+  const pageSize = 10;
 
-  // Load deposits with applied filters
-  async function loadDeposits(url) {
+  // 1️⃣ Fetch live crypto prices (note "ripple" not "xrp")
+  async function fetchCryptoPrices() {
+    const res = await fetch(
+      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,ripple,tron&vs_currencies=usd'
+    );
+    if (!res.ok) {
+      console.error('Price fetch failed');
+      return;
+    }
+    const data = await res.json();
+    livePrices = {
+      BTC: data.bitcoin?.usd || 0,
+      ETH: data.ethereum?.usd || 0,
+      USDT: data.tether?.usd || 0,
+      XRP: data.ripple?.usd || 0,   // use data.ripple
+      TRX: data.tron?.usd || 0,
+    };
+  }
+
+  // 2️⃣ Recursively fetch all paginated deposits
+  async function fetchAllDeposits(url = '/api/deposits/?page=1') {
     const token = localStorage.getItem('token');
     const res = await fetch(url, {
       headers: { 'Authorization': 'Token ' + token }
     });
-
     if (!res.ok) {
       document.getElementById('rows').innerHTML =
-        `<tr><td colspan="6" class="text-center text-danger">
-           Please log in to view deposits.
-         </td></tr>`;
-      return;
+        `<tr><td colspan="7" class="text-center text-danger">Failed to load deposits.</td></tr>`;
+      return [];
     }
+    const { results = [], next } = await res.json();
+    if (next) {
+      const more = await fetchAllDeposits(next);
+      return results.concat(more);
+    }
+    return results;
+  }
 
-    const data = await res.json();
-    console.log('API response:', data);
-
-    // Update paging URLs
-    nextUrl = data.next;
-    prevUrl = data.previous;
-    document.getElementById('next-btn').disabled = !nextUrl;
-    document.getElementById('prev-btn').disabled = !prevUrl;
-
-    // Render the current page of deposits
-    const list = data.results || [];
-    const rowsHtml = list.map(d => {
+  // 3️⃣ Render one page of deposits
+  function renderTable(deposits) {
+    const rows = deposits.map(d => {
       const amount = parseFloat(d.amount).toFixed(2);
-      let dateDisplay = '-';
-      if (d.created) {
-        const dt = new Date(d.created.replace('Z',''));
-        if (!isNaN(dt)) dateDisplay = dt.toLocaleString();
-      }
-      const statusDisplay = d.status.charAt(0).toUpperCase() + d.status.slice(1);
+      const usd = livePrices[d.currency]
+        ? (d.amount * livePrices[d.currency]).toFixed(2)
+        : 'Price Unavailable';
+      const dt = new Date(d.created.replace('Z',''));
+      const dateDisplay = isNaN(dt) ? '-' : dt.toLocaleString();
+      const status = d.status.charAt(0).toUpperCase() + d.status.slice(1);
       return `
         <tr>
           <th scope="row">${d.id}</th>
@@ -104,42 +129,56 @@
           <td>${d.currency}</td>
           <td>${d.trx_id}</td>
           <td>${dateDisplay}</td>
-          <td>${statusDisplay}</td>
+          <td>${status}</td>
+          <td>$${usd}</td>
         </tr>`;
     }).join('');
-    document.getElementById('rows').innerHTML = rowsHtml || 
-      `<tr><td colspan="6" class="text-center">No deposits found.</td></tr>`;
+    document.getElementById('rows').innerHTML =
+      rows || `<tr><td colspan="7" class="text-center">No deposits found.</td></tr>`;
   }
 
-  // Wire up pagination buttons
-  document.getElementById('prev-btn').addEventListener('click', () => {
-    if (prevUrl) loadDeposits(prevUrl);
-  });
-  document.getElementById('next-btn').addEventListener('click', () => {
-    if (nextUrl) loadDeposits(nextUrl);
+  // 4️⃣ Client-side pagination controls
+  function paginate(page = 1) {
+    currentPage = page;
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    renderTable(allDeposits.slice(start, end));
+    document.getElementById('prev-btn').disabled = page === 1;
+    document.getElementById('next-btn').disabled = end >= allDeposits.length;
+    document.getElementById('prev-btn').onclick = () => paginate(page - 1);
+    document.getElementById('next-btn').onclick = () => paginate(page + 1);
+  }
+
+  // 5️⃣ Compute total over all confirmed deposits
+  function updatePortfolioValue() {
+    const total = allDeposits
+      .filter(d => d.status === 'confirmed')
+      .reduce((sum, d) => sum + (parseFloat(d.amount) * (livePrices[d.currency] || 0)), 0);
+    document.getElementById('totalValueAmount').textContent = `$${total.toFixed(2)}`;
+    document.getElementById('totalValue').style.display = 'block';
+  }
+
+  // 6️⃣ Initial load
+  window.addEventListener('DOMContentLoaded', async () => {
+    await fetchCryptoPrices();
+    allDeposits = await fetchAllDeposits();
+    updatePortfolioValue();
+    paginate(1);
   });
 
-  // Filter form functionality
-  document.getElementById('filterForm').addEventListener('submit', async function(e) {
+  // 7️⃣ Filters: refetch + recalc + reset to page 1
+  document.getElementById('filterForm').addEventListener('submit', async e => {
     e.preventDefault();
-
     const params = new URLSearchParams();
+    const map = { minAmount: 'min_amount', maxAmount: 'max_amount', search: 'search', currency: 'currency' };
+    Object.keys(map).forEach(id => {
+      const val = document.getElementById(id).value;
+      if (val) params.append(map[id], val);
+    });
 
-    const currency = document.getElementById('currency').value;
-    const search = document.getElementById('search').value;
-    const minAmount = document.getElementById('minAmount').value;
-    const maxAmount = document.getElementById('maxAmount').value;
-
-    if (currency) params.append('currency', currency);
-    if (search) params.append('search', search);
-    if (minAmount) params.append('min_amount', minAmount);
-    if (maxAmount) params.append('max_amount', maxAmount);
-
-    const url = `/api/deposits/?${params.toString()}&page=1`;  // Reset to page 1 on filter change
-    loadDeposits(url);
+    allDeposits = await fetchAllDeposits(`/api/deposits/?${params.toString()}&page=1`);
+    updatePortfolioValue();
+    paginate(1);
   });
-
-  // Initial load
-  window.addEventListener('DOMContentLoaded', () => loadDeposits(nextUrl));
 </script>
 {% endblock %}
